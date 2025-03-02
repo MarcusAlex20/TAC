@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAC Capital</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 12px; border: 1px solid #ddd; }
+        th { background-color: #f4f4f4; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; }
+        .header h2 { margin: 0; font-weight: normal; color: #555; }
+        .job-listing { margin-top: 20px; text-align: center; }
+        .job-listing button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .quant-image { text-align: center; margin-top: 20px; }
+        .quant-image img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TAC Capital</h1>
+        <h2>The Alexander Company</h2>
+    </div>
+    <div class="quant-image">
+        <img src="/static/quant-image.jpg" alt="Quant Image">
+    </div>
+    <h2>Portfolio Value</h2>
+    <div id="portfolio-value"></div>
+    <h2>Trade Ledger</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Pair</th>
+                <th>Buy Price</th>
+                <th>Sell Price</th>
+                <th>Amount</th>
+                <th>Profit</th>
+            </tr>
+        </thead>
+        <tbody id="ledger-body">
+        </tbody>
+    </table>
+    <div class="job-listing">
+        <h2>Job Listing</h2>
+        <p>Marcus Alexander is the sole proprietor but looking to expand the team. Please email <a href="mailto:thealexandercompany@gmail.com">thealexandercompany@gmail.com</a></p>
+        <button onclick="window.location.href='mailto:thealexandercompany@gmail.com'">Apply to Work for Us</button>
+    </div>
+    <script>
+        async function fetchLedger() {
+            const response = await fetch('/ledger');
+            const data = await response.json();
+            return data;
+        }
+
+        function updateLedgerTable(ledger) {
+            const ledgerBody = document.getElementById('ledger-body');
+            ledgerBody.innerHTML = '';
+            ledger.trades.forEach(trade => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${trade.pair}</td>
+                    <td>${trade.buy_price}</td>
+                    <td>${trade.sell_price}</td>
+                    <td>${trade.amount}</td>
+                    <td>${trade.profit}</td>
+                `;
+                ledgerBody.appendChild(row);
+            });
+        }
+
+        function updatePortfolioValue(ledger) {
+            const portfolioValueDiv = document.getElementById('portfolio-value');
+            const totalProfit = ledger.trades.reduce((acc, trade) => acc + trade.profit, 0);
+            portfolioValueDiv.textContent = `Total Profit: ${totalProfit.toFixed(2)}`;
+        }
+
+        async function updateLedger() {
+            const ledger = await fetchLedger();
+            updateLedgerTable(ledger);
+            updatePortfolioValue(ledger);
+        }
+
+        setInterval(updateLedger, 1000); // Update every second
+        updateLedger(); // Initial load
+    </script>
+</body>
+</html>
